@@ -1,6 +1,7 @@
 package bacci.giovanni.bio.sequencing;
 
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
@@ -10,6 +11,15 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import bacci.giovanni.bio.sequencing.io.FrequencyTableWriter;
+import bacci.giovanni.bio.sequencing.io.RandomFastaSequenceStreamer;
+import bacci.giovanni.bio.sequencing.io.SimpleSequenceWriter;
+import bacci.giovanni.bio.sequencing.manipulation.FastaManipulationStrategy;
+import bacci.giovanni.bio.sequencing.manipulation.SequenceManipulationStrategy;
+import bacci.giovanni.bio.sequencing.pull.FrequencyPullStreamer;
+import bacci.giovanni.bio.sequencing.pull.SimpleSequencePullStreamer;
+import bacci.giovanni.bio.sequencing.util.FilePointerContainer;
 
 /**
  * Main class that delete redundant sequences from one or multiple sequences
@@ -28,6 +38,8 @@ public class FastaFileDereplicator {
 	private final String tableSuffix = "frequency.csv";
 	private final String sequenceSuffix = "sequences.fasta";
 	private final String idSuffix = "ids.txt";
+	private SequenceManipulationStrategy writingManipulationStrategy = new FastaManipulationStrategy();
+	private SequenceManipulationStrategy readingManipulationStrategy = null;
 
 	/**
 	 * This constructor takes two parameters. If the <code>input</code> path is
@@ -94,13 +106,17 @@ public class FastaFileDereplicator {
 			if (Files.isDirectory(p)) {
 				continue;
 			}
-			String name = p.getFileName().toString();
-			RandomAccessFile raf = new RandomAccessFile(p.toFile(), "r");
-			RandomFastaSequenceStreamer fastaStreamer = new RandomFastaSequenceStreamer(
-					frequencyStreamer);
-			fastaStreamer.setRaf(raf);
-			fastaStreamer.setTag(name);
-			fastaStreamer.stream();
+//			String name = p.getFileName().toString();
+//			RandomAccessFile raf = new RandomAccessFile(p.toFile(), "r");
+//			RandomFastaSequenceStreamer fastaStreamer = new RandomFastaSequenceStreamer(
+//					frequencyStreamer);
+//			if(readingManipulationStrategy != null){
+//				fastaStreamer.setSequenceManipulationStrategy(readingManipulationStrategy);
+//			}
+//			fastaStreamer.setRaf(raf);
+//			fastaStreamer.setTag(name);
+//			fastaStreamer.stream();
+			initialiseSequenceStreamer(p).stream();
 		}
 	}
 
@@ -111,13 +127,30 @@ public class FastaFileDereplicator {
 	 *             if an IO Error occurs.
 	 */
 	private void singleDereplication() throws IOException {
+//		String name = input.getFileName().toString();
+//		RandomAccessFile raf = new RandomAccessFile(input.toFile(), "r");
+//		RandomFastaSequenceStreamer fastaStreamer = new RandomFastaSequenceStreamer(
+//				frequencyStreamer);
+//		if(readingManipulationStrategy != null){
+//			fastaStreamer.setSequenceManipulationStrategy(readingManipulationStrategy);
+//		}
+//		fastaStreamer.setRaf(raf);
+//		fastaStreamer.setTag(name);
+//		fastaStreamer.stream();
+		initialiseSequenceStreamer(input).stream();
+	}
+	
+	private RandomFastaSequenceStreamer initialiseSequenceStreamer(Path input) throws FileNotFoundException{
 		String name = input.getFileName().toString();
 		RandomAccessFile raf = new RandomAccessFile(input.toFile(), "r");
 		RandomFastaSequenceStreamer fastaStreamer = new RandomFastaSequenceStreamer(
 				frequencyStreamer);
+		if(readingManipulationStrategy != null){
+			fastaStreamer.setSequenceManipulationStrategy(readingManipulationStrategy);
+		}
 		fastaStreamer.setRaf(raf);
 		fastaStreamer.setTag(name);
-		fastaStreamer.stream();
+		return fastaStreamer;
 	}
 
 	/**
@@ -150,12 +183,14 @@ public class FastaFileDereplicator {
 		}
 
 		Charset def = Charset.defaultCharset();
+		
 		FrequencyTableWriter freqWriter = new FrequencyTableWriter(
 				Files.newBufferedWriter(frequencyTable, def));
 		freqWriter.setTags(frequencyStreamer.getTagSet());
 		freqWriter.writeHeader();
-		FastaSequenceWriter seqWriter = new FastaSequenceWriter(
+		SimpleSequenceWriter seqWriter = new SimpleSequenceWriter(
 				Files.newBufferedWriter(sequences, def));
+		seqWriter.setSequenceManipulationStrategy(writingManipulationStrategy);
 		BufferedWriter idsWriter = Files.newBufferedWriter(ids, def);
 
 		for (Collection<FilePointerContainer> fpcCollection : frequencyStreamer) {
@@ -183,5 +218,14 @@ public class FastaFileDereplicator {
 			freqWriter.write(id, entryMap);
 		}
 		idsWriter.close();
+	}
+
+	public void setWritingManipulationStrategy(SequenceManipulationStrategy strategy) {
+		this.writingManipulationStrategy = strategy;
+	}
+
+	public void setReadingManipulationStrategy(
+			SequenceManipulationStrategy readingManipulationStrategy) {
+		this.readingManipulationStrategy = readingManipulationStrategy;
 	}
 }

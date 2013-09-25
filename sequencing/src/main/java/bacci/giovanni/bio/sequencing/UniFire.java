@@ -8,6 +8,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import bacci.giovanni.bio.sequencing.manipulation.FastaManipulationStrategy;
+import bacci.giovanni.bio.sequencing.manipulation.NoManipulationStrategy;
+import bacci.giovanni.bio.sequencing.manipulation.UracileConverterDecorator;
+
 public class UniFire {
 
 	private static final String INPUT = "-in";
@@ -42,7 +46,9 @@ public class UniFire {
 			                                      "email: giovanni.bacci@unifi.it \n" +
 			                                      "version: 0.0.1-SNAPSHOT \n" +
 			                                      "------------------------------------------------\n";
-	private static final String ERROR_MESSAGE = "error";
+	private static final String ERROR_MESSAGE = "                                        \n" +
+			                                    "Input is bad formatted! Check the help: \n" +
+			                                    "java -jar UniFire.jar -h \n";
 
 	private static Path in = null;
 	private static Path out = null;
@@ -50,6 +56,8 @@ public class UniFire {
 	public static void main(String[] args) {
 		checkArgs(args);
 		FastaFileDereplicator dereplicator = new FastaFileDereplicator(in, out);
+		dereplicator.setReadingManipulationStrategy(new UracileConverterDecorator(new NoManipulationStrategy()));
+		dereplicator.setWritingManipulationStrategy(new UracileConverterDecorator(new FastaManipulationStrategy()));
 		try {
 			dereplicator.dereplicate();
 		} catch (FileNotFoundException e) {

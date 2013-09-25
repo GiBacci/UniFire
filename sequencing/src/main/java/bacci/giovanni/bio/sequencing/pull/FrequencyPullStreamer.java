@@ -1,4 +1,4 @@
-package bacci.giovanni.bio.sequencing;
+package bacci.giovanni.bio.sequencing.pull;
 
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -8,6 +8,10 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import bacci.giovanni.bio.sequencing.io.RandomFastaSequenceStreamer;
+import bacci.giovanni.bio.sequencing.io.SequenceStreamer;
+import bacci.giovanni.bio.sequencing.util.FilePointerContainer;
 
 /**
  * Object that store each sequence in a frequency table using a {@link FilePointerContainer} for each
@@ -95,10 +99,19 @@ public class FrequencyPullStreamer extends SequencePullStreamerDecorator impleme
 		return sequencesNumber;
 	}
 
+	/**
+	 * Returns the names of the file/s scanned
+	 * @return a {@link Set} of unique Strings
+	 */
 	public Set<String> getTagSet() {
 		return tagSet;
 	}
 	
+	/**
+	 * Static method for cleaning a String.
+	 * @param sequence the sequence that has to be cleaned
+	 * @return a trimmed sequence without spaces and with lower case characters.
+	 */
 	public static String cleanSequence(String sequence){
 		return sequence.trim().replaceAll("\\s", "").toLowerCase();
 	}

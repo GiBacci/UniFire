@@ -1,7 +1,10 @@
-package bacci.giovanni.bio.sequencing;
+package bacci.giovanni.bio.sequencing.io;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+
+import bacci.giovanni.bio.sequencing.manipulation.SequenceManipulationStrategy;
+import bacci.giovanni.bio.sequencing.pull.SequencePullStreamer;
 
 /**
  * Object that streams a Fasta sequence file and call the
@@ -22,6 +25,7 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 	private RandomAccessFile raf = null;
 	private SequencePullStreamer sps = null;
 	private String tag = null;
+	private SequenceManipulationStrategy strategy = null;
 
 	/**
 	 * Constructor
@@ -53,8 +57,6 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 	public void setTag(String tag) {
 		this.tag = tag;
 	}
-	
-
 
 	public void stream() throws IOException {
 		if (raf == null) {
@@ -67,7 +69,12 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 			while ((line = raf.readLine()) != null) {
 				if (line.startsWith(">")) {
 					if (buffer != null) {
-						sps.pull(buffer.toString(), point, raf, tag);
+						if (strategy != null) {
+							sps.pull(strategy.manipulate(null,
+									buffer.toString()), point, raf, tag);
+						} else {
+							sps.pull(buffer.toString(), point, raf, tag);
+						}
 						point = position;
 					}
 					buffer = new StringBuffer();
@@ -76,11 +83,22 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 					position = raf.getFilePointer();
 				}
 			}
-			if(buffer != null){
-				sps.pull(buffer.toString(), point, raf, tag);
+			if (buffer != null) {
+				if (strategy != null) {
+					sps.pull(strategy.manipulate(null,
+							buffer.toString()), point, raf, tag);
+				} else {
+					sps.pull(buffer.toString(), point, raf, tag);
+				}
 			}
 
 		}
+
+	}
+
+	public void setSequenceManipulationStrategy(
+			SequenceManipulationStrategy strategy) {
+		this.strategy = strategy;
 
 	}
 

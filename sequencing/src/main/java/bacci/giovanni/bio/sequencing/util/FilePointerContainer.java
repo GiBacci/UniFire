@@ -1,4 +1,4 @@
-package bacci.giovanni.bio.sequencing;
+package bacci.giovanni.bio.sequencing.util;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

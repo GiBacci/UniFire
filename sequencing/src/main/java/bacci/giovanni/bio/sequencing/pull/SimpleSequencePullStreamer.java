@@ -1,4 +1,4 @@
-package bacci.giovanni.bio.sequencing;
+package bacci.giovanni.bio.sequencing.pull;
 
 public class SimpleSequencePullStreamer implements SequencePullStreamer {	
 	

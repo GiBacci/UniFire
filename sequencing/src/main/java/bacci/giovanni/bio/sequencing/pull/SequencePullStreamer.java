@@ -1,4 +1,6 @@
-package bacci.giovanni.bio.sequencing;
+package bacci.giovanni.bio.sequencing.pull;
+
+import bacci.giovanni.bio.sequencing.io.SequenceStreamer;
 
 /**
  * Object that work on sequences. The {@link SequencePullStreamer#pull(String, Object...)} method 
