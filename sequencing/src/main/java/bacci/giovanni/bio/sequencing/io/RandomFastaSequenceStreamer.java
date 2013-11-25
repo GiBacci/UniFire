@@ -2,6 +2,9 @@ package bacci.giovanni.bio.sequencing.io;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observer;
 
 import bacci.giovanni.bio.sequencing.manipulation.SequenceManipulationStrategy;
 import bacci.giovanni.bio.sequencing.pull.SequencePullStreamer;
@@ -26,6 +29,8 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 	private SequencePullStreamer sps = null;
 	private String tag = null;
 	private SequenceManipulationStrategy strategy = null;
+	private List<StreamerObserver> observers = null;
+	private long seqNum = 0;
 
 	/**
 	 * Constructor
@@ -36,6 +41,7 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 	 */
 	public RandomFastaSequenceStreamer(SequencePullStreamer sps) {
 		this.sps = sps;
+		this.observers = new ArrayList<StreamerObserver>();
 	}
 
 	/**
@@ -68,13 +74,8 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 			long point = position;
 			while ((line = raf.readLine()) != null) {
 				if (line.startsWith(">")) {
-					if (buffer != null) {
-						if (strategy != null) {
-							sps.pull(strategy.manipulate(null,
-									buffer.toString()), point, raf, tag);
-						} else {
-							sps.pull(buffer.toString(), point, raf, tag);
-						}
+					if (buffer != null) {																			
+						pull(buffer.toString(), point, raf, tag);
 						point = position;
 					}
 					buffer = new StringBuffer();
@@ -84,22 +85,48 @@ public class RandomFastaSequenceStreamer implements SequenceStreamer {
 				}
 			}
 			if (buffer != null) {
-				if (strategy != null) {
-					sps.pull(strategy.manipulate(null,
-							buffer.toString()), point, raf, tag);
-				} else {
-					sps.pull(buffer.toString(), point, raf, tag);
-				}
+				pull(buffer.toString(), point, raf, tag);
 			}
 
 		}
 
+	}
+	
+	private void pull(String seq, long point, RandomAccessFile raf, String tag){
+		if (strategy != null) {
+			sps.pull(strategy.manipulate(null,
+					seq), point, raf, tag);			
+		} else {
+			sps.pull(seq, point, raf, tag);
+		}
+		seqNum++;
+		this.notifyObservers(seqNum);
 	}
 
 	public void setSequenceManipulationStrategy(
 			SequenceManipulationStrategy strategy) {
 		this.strategy = strategy;
 
+	}
+
+	public void addObserver(StreamerObserver observer) {
+		if(observers.indexOf(observer) < 0){
+			observers.add(observer);
+		}		
+	}
+
+	public void removeObserver(StreamerObserver observer) {
+		int index = observers.indexOf(observer);
+		if(index >= 0){
+			observers.remove(index);
+		}		
+	}
+
+	public void notifyObservers(long seqNum) {
+		for(StreamerObserver obs : observers){
+			obs.update(seqNum);
+		}
+		
 	}
 
 }

@@ -12,9 +12,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import bacci.giovanni.bio.sequencing.io.AbsolutNumberObserver;
 import bacci.giovanni.bio.sequencing.io.FrequencyTableWriter;
 import bacci.giovanni.bio.sequencing.io.RandomFastaSequenceStreamer;
 import bacci.giovanni.bio.sequencing.io.SimpleSequenceWriter;
+import bacci.giovanni.bio.sequencing.io.StreamerObserver;
 import bacci.giovanni.bio.sequencing.manipulation.FastaManipulationStrategy;
 import bacci.giovanni.bio.sequencing.manipulation.SequenceManipulationStrategy;
 import bacci.giovanni.bio.sequencing.pull.FrequencyPullStreamer;
@@ -40,6 +42,7 @@ public class FastaFileDereplicator {
 	private final String idSuffix = "ids.txt";
 	private SequenceManipulationStrategy writingManipulationStrategy = new FastaManipulationStrategy();
 	private SequenceManipulationStrategy readingManipulationStrategy = null;
+	private StreamerObserver observer = new AbsolutNumberObserver();
 
 	/**
 	 * This constructor takes two parameters. If the <code>input</code> path is
@@ -106,17 +109,9 @@ public class FastaFileDereplicator {
 			if (Files.isDirectory(p)) {
 				continue;
 			}
-//			String name = p.getFileName().toString();
-//			RandomAccessFile raf = new RandomAccessFile(p.toFile(), "r");
-//			RandomFastaSequenceStreamer fastaStreamer = new RandomFastaSequenceStreamer(
-//					frequencyStreamer);
-//			if(readingManipulationStrategy != null){
-//				fastaStreamer.setSequenceManipulationStrategy(readingManipulationStrategy);
-//			}
-//			fastaStreamer.setRaf(raf);
-//			fastaStreamer.setTag(name);
-//			fastaStreamer.stream();
-			initialiseSequenceStreamer(p).stream();
+			RandomFastaSequenceStreamer streamer = initialiseSequenceStreamer(p);
+			streamer.addObserver(observer);
+			streamer.stream();
 		}
 	}
 
@@ -127,17 +122,9 @@ public class FastaFileDereplicator {
 	 *             if an IO Error occurs.
 	 */
 	private void singleDereplication() throws IOException {
-//		String name = input.getFileName().toString();
-//		RandomAccessFile raf = new RandomAccessFile(input.toFile(), "r");
-//		RandomFastaSequenceStreamer fastaStreamer = new RandomFastaSequenceStreamer(
-//				frequencyStreamer);
-//		if(readingManipulationStrategy != null){
-//			fastaStreamer.setSequenceManipulationStrategy(readingManipulationStrategy);
-//		}
-//		fastaStreamer.setRaf(raf);
-//		fastaStreamer.setTag(name);
-//		fastaStreamer.stream();
-		initialiseSequenceStreamer(input).stream();
+		RandomFastaSequenceStreamer streamer = initialiseSequenceStreamer(input);
+		streamer.addObserver(observer);
+		streamer.stream();
 	}
 	
 	private RandomFastaSequenceStreamer initialiseSequenceStreamer(Path input) throws FileNotFoundException{

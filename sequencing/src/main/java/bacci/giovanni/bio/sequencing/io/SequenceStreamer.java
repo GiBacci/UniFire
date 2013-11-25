@@ -21,4 +21,10 @@ public interface SequenceStreamer extends SequenceManipulator {
 	 *             if an IO error occurs
 	 */
 	public void stream() throws IOException;
+	
+	public void addObserver(StreamerObserver observer);
+	
+	public void removeObserver(StreamerObserver observer);
+	
+	public void notifyObservers(long seqNum);
 }
