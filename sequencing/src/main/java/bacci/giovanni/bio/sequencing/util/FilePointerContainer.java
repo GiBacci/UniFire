@@ -95,9 +95,36 @@ public class FilePointerContainer  {
 		return tag;
 	}
 	
-	
+	/**
+	 * Return the size of this {@link FilePointerContainer}. The size
+	 * is the number of pointers that this object has stored.
+	 * @return the number of pointers.
+	 */
 	public int size(){
 		return pointers.size();
+	}
+
+	/**
+	 * Equals method. This method check the equality of the {@link RandomAccessFile}
+	 * and the tag given when instantiating a new {@link FilePointerContainer}.
+	 * This method does not check the equality of the pointers list.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof FilePointerContainer))return false;
+		FilePointerContainer that = (FilePointerContainer)obj;		
+		return (this.raf.equals(that.raf)) && (this.tag.equals(that.tag));
+	}
+
+	/**
+	 * @see #equals(Object)
+	 */
+	@Override
+	public int hashCode() {
+		int hash = 1;
+		hash = (hash * 17) + raf.hashCode();
+		hash = (hash * 31) + tag.hashCode();
+		return hash;
 	}
 
 }

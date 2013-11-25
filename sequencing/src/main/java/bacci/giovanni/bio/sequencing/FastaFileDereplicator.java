@@ -8,8 +8,8 @@ import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import bacci.giovanni.bio.sequencing.io.FrequencyTableWriter;
@@ -193,7 +193,7 @@ public class FastaFileDereplicator {
 		seqWriter.setSequenceManipulationStrategy(writingManipulationStrategy);
 		BufferedWriter idsWriter = Files.newBufferedWriter(ids, def);
 
-		for (Collection<FilePointerContainer> fpcCollection : frequencyStreamer) {
+		for (List<FilePointerContainer> fpcCollection : frequencyStreamer) {
 			Map<String, Integer> entryMap = new LinkedHashMap<String, Integer>();
 			boolean first = true;
 			String id = null;
